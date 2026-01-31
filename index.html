@@ -3,648 +3,294 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#000000">
-    <meta name="description" content="Uber-style ride booking PWA">
-    <title>RideShare - Book Your Ride</title>
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icon-192.png">
+    <title>Supuber | Premium Mobility</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #000;
+            color: #fff;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            background-image: 
+                radial-gradient(circle at 0% 0%, #111 0%, transparent 50%),
+                radial-gradient(circle at 100% 100%, #0a0a0a 0%, transparent 50%);
         }
 
-        .container {
-            background: white;
-            border-radius: 24px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 500px;
+        .app-shell {
+            background: rgba(15, 15, 15, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             width: 100%;
+            max-width: 440px;
+            height: 90vh;
+            border-radius: 40px;
+            display: flex;
+            flex-direction: column;
             overflow: hidden;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+            position: relative;
         }
 
-        .header {
-            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
+        /* Progress Bar */
+        .progress-container {
+            display: flex;
+            gap: 4px;
+            padding: 20px 30px 10px;
         }
-
-        .header h1 {
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 8px;
+        .progress-segment {
+            height: 3px;
+            flex: 1;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            transition: all 0.5s ease;
         }
+        .progress-segment.active { background: #fff; box-shadow: 0 0 10px rgba(255,255,255,0.3); }
 
-        .header p {
-            opacity: 0.8;
-            font-size: 14px;
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 30px;
+            scrollbar-width: none;
         }
+        .content-area::-webkit-scrollbar { display: none; }
 
-        .content {
-            padding: 30px;
-        }
+        .step { display: none; animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .step.active { display: block; }
 
-        .step {
-            display: none;
-            animation: fadeIn 0.3s ease-in;
-        }
-
-        .step.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .section-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 16px;
-            color: #1a1a1a;
-        }
-
-        .location-grid {
-            display: grid;
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-
-        .location-card {
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 16px;
+        /* Custom UI Components */
+        .selectable-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            padding: 18px;
+            margin-bottom: 12px;
             cursor: pointer;
             transition: all 0.2s ease;
-            background: white;
         }
-
-        .location-card:hover {
-            border-color: #667eea;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        .selectable-card:hover { background: rgba(255,255,255,0.06); }
+        .selectable-card.selected {
+            background: #fff;
+            color: #000;
+            border-color: #fff;
         }
+        .selectable-card.selected .text-gray-400 { color: #444; }
 
-        .location-card.selected {
-            border-color: #667eea;
-            background: #f0f4ff;
-        }
-
-        .location-name {
-            font-weight: 600;
-            font-size: 16px;
-            margin-bottom: 4px;
-            color: #1a1a1a;
-        }
-
-        .location-address {
-            font-size: 13px;
-            color: #6b7280;
-        }
-
-        .car-grid {
-            display: grid;
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-
-        .car-card {
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 16px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            background: white;
-        }
-
-        .car-card:hover {
-            border-color: #667eea;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
-        }
-
-        .car-card.selected {
-            border-color: #667eea;
-            background: #f0f4ff;
-        }
-
-        .car-image {
-            width: 80px;
-            height: 60px;
-            object-fit: contain;
-            flex-shrink: 0;
-        }
-
-        .car-info {
-            flex: 1;
-        }
-
-        .car-name {
-            font-weight: 600;
-            font-size: 16px;
-            margin-bottom: 4px;
-            color: #1a1a1a;
-        }
-
-        .car-stats {
-            font-size: 13px;
-            color: #6b7280;
-        }
-
-        .payment-card {
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 20px;
-            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-            color: white;
-            margin-bottom: 24px;
-        }
-
-        .card-type {
-            font-size: 12px;
-            opacity: 0.8;
-            margin-bottom: 8px;
+        .btn-main {
+            background: #fff;
+            color: #000;
+            padding: 18px;
+            border-radius: 18px;
+            font-weight: 800;
+            width: 100%;
+            transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
+        .btn-main:disabled { background: #222; color: #555; }
+        .btn-main:hover:not(:disabled) { transform: scale(1.02); box-shadow: 0 10px 20px rgba(255,255,255,0.1); }
 
-        .card-number {
-            font-size: 20px;
-            font-weight: 600;
-            letter-spacing: 2px;
-            margin-bottom: 16px;
-        }
-
-        .card-footer {
-            display: flex;
-            justify-content: space-between;
-            font-size: 13px;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 16px;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .btn-primary:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .btn-secondary {
-            background: #f3f4f6;
-            color: #1a1a1a;
-            margin-top: 12px;
-        }
-
-        .btn-secondary:hover {
-            background: #e5e7eb;
-        }
-
-        .loading-screen {
-            text-align: center;
-            padding: 40px 0;
+        .payment-pill {
+            background: linear-gradient(135deg, #222, #000);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px;
+            padding: 24px;
         }
 
         .spinner {
-            width: 60px;
-            height: 60px;
-            border: 4px solid #f3f4f6;
-            border-top: 4px solid #667eea;
+            width: 50px;
+            height: 50px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-top: 2px solid #fff;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 24px;
+            animation: spin 0.8s linear infinite;
         }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .loading-text {
-            font-size: 18px;
-            font-weight: 600;
-            color: #1a1a1a;
-            margin-bottom: 8px;
-        }
-
-        .loading-subtext {
-            font-size: 14px;
-            color: #6b7280;
-        }
-
-        .confirmation {
-            text-align: center;
-        }
-
-        .success-icon {
-            width: 80px;
-            height: 80px;
-            background: #10b981;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 24px;
-            animation: scaleIn 0.5s ease;
-        }
-
-        @keyframes scaleIn {
-            0% { transform: scale(0); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-
-        .success-icon::before {
-            content: "✓";
-            font-size: 48px;
-            color: white;
-            font-weight: bold;
-        }
-
-        .confirmation h2 {
-            font-size: 24px;
-            margin-bottom: 16px;
-            color: #1a1a1a;
-        }
-
-        .driver-card {
-            background: #f9fafb;
-            border-radius: 12px;
-            padding: 20px;
-            margin: 24px 0;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .driver-photo {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid white;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .driver-info {
-            flex: 1;
-            text-align: left;
-        }
-
-        .driver-name {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 4px;
-            color: #1a1a1a;
-        }
-
-        .driver-details {
-            font-size: 14px;
-            color: #6b7280;
-        }
-
-        .ride-details {
-            background: #f9fafb;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 24px;
-            text-align: left;
-        }
-
-        .ride-detail-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .ride-detail-row:last-child {
-            border-bottom: none;
-        }
-
-        .ride-detail-label {
-            color: #6b7280;
-            font-size: 14px;
-        }
-
-        .ride-detail-value {
-            color: #1a1a1a;
-            font-weight: 600;
-            font-size: 14px;
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🚗 RideShare</h1>
-            <p>Your ride, your way</p>
+
+    <div class="app-shell">
+        <div class="progress-container">
+            <div class="progress-segment active" id="p1"></div>
+            <div class="progress-segment" id="p2"></div>
+            <div class="progress-segment" id="p3"></div>
         </div>
 
-        <div class="content">
-            <!-- Step 1: Choose Location -->
+        <div class="content-area">
             <div class="step active" id="step-location">
-                <h2 class="section-title">Where to?</h2>
-                <div class="location-grid" id="locationGrid"></div>
-                <button class="btn btn-primary" id="continueToCarBtn" disabled>Continue</button>
+                <h1 class="text-3xl font-extrabold mb-1">Where to?</h1>
+                <p class="text-gray-400 mb-8">Select your destination</p>
+                <div id="locationGrid"></div>
+                <div class="mt-8">
+                    <button class="btn-main" id="continueToCarBtn" disabled>Confirm Location</button>
+                </div>
             </div>
 
-            <!-- Step 2: Choose Car -->
             <div class="step" id="step-car">
-                <h2 class="section-title">Choose your ride</h2>
-                <div class="car-grid" id="carGrid"></div>
-                <button class="btn btn-primary" id="continueToPaymentBtn" disabled>Continue</button>
-                <button class="btn btn-secondary" id="backToLocationBtn">Back</button>
+                <button class="text-xs text-gray-500 mb-4 uppercase tracking-widest" id="backToLocationBtn">← Back</button>
+                <h1 class="text-3xl font-extrabold mb-1">Your Fleet</h1>
+                <p class="text-gray-400 mb-8">Premium electric transport</p>
+                <div id="carGrid"></div>
+                <div class="mt-8">
+                    <button class="btn-main" id="continueToPaymentBtn" disabled>Select Vehicle</button>
+                </div>
             </div>
 
-            <!-- Step 3: Payment -->
             <div class="step" id="step-payment">
-                <h2 class="section-title">Payment method</h2>
-                <div class="payment-card">
-                    <div class="card-type">Company Credit Card</div>
-                    <div class="card-number">•••• •••• •••• 4013</div>
-                    <div class="card-footer">
-                        <div>MasterCard</div>
-                        <div>Exp 12/27</div>
+                <button class="text-xs text-gray-500 mb-4 uppercase tracking-widest" id="backToCarBtn">← Back</button>
+                <h1 class="text-3xl font-extrabold mb-1">Checkout</h1>
+                <p class="text-gray-400 mb-8">Secure encrypted payment</p>
+                
+                <div class="payment-pill mb-8">
+                    <div class="flex justify-between items-start mb-6">
+                        <span class="text-xs font-bold tracking-tighter opacity-50">CORPORATE CARD</span>
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" class="h-6">
+                    </div>
+                    <div class="text-xl tracking-widest mb-4">•••• •••• •••• 4013</div>
+                    <div class="flex justify-between text-xs opacity-60">
+                        <span>SPORAX CORP</span>
+                        <span>12/27</span>
                     </div>
                 </div>
-                <button class="btn btn-primary" id="confirmRideBtn">Confirm & Book Ride</button>
-                <button class="btn btn-secondary" id="backToCarBtn">Back</button>
+
+                <button class="btn-main" id="confirmRideBtn">Book Supuber</button>
             </div>
 
-            <!-- Step 4: Finding Driver -->
             <div class="step" id="step-loading">
-                <div class="loading-screen">
-                    <div class="spinner"></div>
-                    <div class="loading-text">Finding your driver...</div>
-                    <div class="loading-subtext">This will only take a moment</div>
+                <div class="flex flex-col items-center justify-center py-20">
+                    <div class="spinner mb-6"></div>
+                    <h2 class="text-xl font-bold">Dispatching...</h2>
+                    <p class="text-gray-500 text-sm mt-2">Connecting to the nearest unit</p>
                 </div>
             </div>
 
-            <!-- Step 5: Confirmation -->
             <div class="step" id="step-confirmation">
-                <div class="confirmation">
-                    <div class="success-icon"></div>
-                    <h2>Your ride is confirmed!</h2>
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-6">
+                        <span class="text-black text-2xl">✓</span>
+                    </div>
+                    <h2 class="text-2xl font-bold mb-2">Unit Dispatched</h2>
+                    <p class="text-gray-500 text-sm mb-8">Your driver is on the way</p>
                     
-                    <div class="driver-card" id="driverCard"></div>
-                    
-                    <div class="ride-details" id="rideDetails"></div>
+                    <div id="driverCard" class="bg-zinc-900/50 rounded-3xl p-6 border border-white/5 mb-6"></div>
+                    <div id="rideDetails" class="text-left space-y-3 mb-8 px-2"></div>
 
-                    <button class="btn btn-primary" id="newRideBtn">Book Another Ride</button>
+                    <button class="btn-main" id="newRideBtn">New Ride</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Data
+        // Use your original logic, just updated for new class names
         const locations = [
-            { id: 1, name: 'AGTU', fullName: 'Andrew Garcia Technical University', address: '101 Cheetah Way, North Platte, NE' },
-            { id: 2, name: 'Portland', fullName: 'Portland', address: 'Portland, Oregon' },
-            { id: 3, name: 'Eugene', fullName: 'Eugene', address: 'Eugene, Oregon' },
-            { id: 4, name: 'The Markies', fullName: 'The Markies', address: '10 Aberdeen Dr, West Nyack, NY 10994' },
-            { id: 5, name: 'Ageek Phone Repair', fullName: 'Ageek Phone Repair', address: '9 Brookside Ave, New City, NY 10956' }
+            { id: 1, name: 'AGTU', fullName: 'Andrew Garcia Technical University', address: '101 Cheetah Way, NE' },
+            { id: 2, name: 'Portland', fullName: 'Portland Central', address: 'Oregon, USA' },
+            { id: 4, name: 'The Markies', fullName: 'The Markies', address: '10 Aberdeen Dr, NY' },
+            { id: 5, name: 'Ageek Phone Repair', fullName: 'Ageek Repair', address: '9 Brookside Ave, NY' }
         ];
 
         const cars = [
-            { 
-                id: 1, 
-                name: 'Ford F-150', 
-                image: 'https://vehicle-images.dealerinspire.com/stock-images/thumbnails/large/chrome/ff0a0d78dca38c7446c167c7c7a3e10d.png'
-            },
-            { 
-                id: 2, 
-                name: 'Golf Cart', 
-                image: 'https://4hornind.com/wp-content/uploads/2020/12/196-1966316_club-car-precedent-club-car-golf-cart-hd.png'
-            },
-            { 
-                id: 3, 
-                name: 'Apple Car', 
-                image: 'appelcar.jpg'
-            }
+            { id: 1, name: 'Ford F-150 Lightning', image: 'https://vehicle-images.dealerinspire.com/stock-images/thumbnails/large/chrome/ff0a0d78dca38c7446c167c7c7a3e10d.png', price: '$24.00' },
+            { id: 2, name: 'Executive Golf Cart', image: 'https://4hornind.com/wp-content/uploads/2020/12/196-1966316_club-car-precedent-club-car-golf-cart-hd.png', price: '$12.50' },
+            { id: 3, name: 'Supuber Vision One', image: 'https://cdn-icons-png.flaticon.com/128/88/88269.png', price: '$45.00' }
         ];
 
         const drivers = [
-            { 
-                id: 1, 
-                name: 'Rajeet', 
-                photo: 'https://t4.ftcdn.net/jpg/06/13/28/69/360_F_613286945_BJ7rUxmhftMxfNtyyfnwDwuD2CxK8YQM.jpg',
-                rating: 4.9
-            },
-            { 
-                id: 2, 
-                name: 'Noh', 
-                photo: 'https://i.ibb.co/XQ3xNXB/nahnoanahoh.jpg',
-                rating: 4.8
-            },
-            { 
-                id: 3, 
-                name: 'Andrew Garcia', 
-                photo: 'https://i.ibb.co/knpX722/andrewgarc.jpg',
-                rating: 5.0,
-                tier: 'SupuberPlus'
-            }
+            { name: 'Andrew Garcia', photo: 'https://i.ibb.co/knpX722/andrewgarc.jpg', rating: 5.0, tier: 'SupuberPlus' },
+            { name: 'Rajeet', photo: 'https://t4.ftcdn.net/jpg/06/13/28/69/360_F_613286945_BJ7rUxmhftMxfNtyyfnwDwuD2CxK8YQM.jpg', rating: 4.9, tier: 'Pro' }
         ];
 
-        // State
-        let selectedLocation = null;
-        let selectedCar = null;
+        let state = { loc: null, car: null };
 
-        // Initialize
-        function init() {
-            renderLocations();
-            renderCars();
-            setupEventListeners();
-        }
-
-        function renderLocations() {
-            const grid = document.getElementById('locationGrid');
-            grid.innerHTML = locations.map(loc => `
-                <div class="location-card" data-id="${loc.id}">
-                    <div class="location-name">${loc.fullName}</div>
-                    <div class="location-address">${loc.address}</div>
+        function render() {
+            document.getElementById('locationGrid').innerHTML = locations.map(l => `
+                <div class="selectable-card ${state.loc?.id === l.id ? 'selected' : ''}" onclick="selectLoc(${l.id})">
+                    <div class="font-bold">${l.fullName}</div>
+                    <div class="text-xs text-gray-400 mt-1">${l.address}</div>
                 </div>
             `).join('');
 
-            grid.querySelectorAll('.location-card').forEach(card => {
-                card.addEventListener('click', () => selectLocation(parseInt(card.dataset.id)));
-            });
-        }
-
-        function renderCars() {
-            const grid = document.getElementById('carGrid');
-            grid.innerHTML = cars.map(car => {
-                const driversNearby = Math.floor(Math.random() * 8) + 3;
-                const closestDriver = Math.floor(Math.random() * 5) + 1;
-                return `
-                    <div class="car-card" data-id="${car.id}">
-                        <img src="${car.image}" alt="${car.name}" class="car-image">
-                        <div class="car-info">
-                            <div class="car-name">${car.name}</div>
-                            <div class="car-stats">${driversNearby} drivers nearby · ${closestDriver} min away</div>
-                        </div>
+            document.getElementById('carGrid').innerHTML = cars.map(c => `
+                <div class="selectable-card flex items-center gap-4 ${state.car?.id === c.id ? 'selected' : ''}" onclick="selectCar(${c.id})">
+                    <img src="${c.image}" class="w-16 h-12 object-contain ${c.id === 3 ? 'invert' : ''}">
+                    <div class="flex-1">
+                        <div class="font-bold text-sm">${c.name}</div>
+                        <div class="text-xs text-gray-400">Available now</div>
                     </div>
-                `;
-            }).join('');
-
-            grid.querySelectorAll('.car-card').forEach(card => {
-                card.addEventListener('click', () => selectCar(parseInt(card.dataset.id)));
-            });
+                    <div class="font-bold">${c.price}</div>
+                </div>
+            `).join('');
         }
 
-        function selectLocation(id) {
-            selectedLocation = locations.find(l => l.id === id);
-            document.querySelectorAll('#locationGrid .location-card').forEach(card => {
-                card.classList.toggle('selected', parseInt(card.dataset.id) === id);
-            });
+        function selectLoc(id) {
+            state.loc = locations.find(l => l.id === id);
             document.getElementById('continueToCarBtn').disabled = false;
+            render();
         }
 
         function selectCar(id) {
-            selectedCar = cars.find(c => c.id === id);
-            document.querySelectorAll('#carGrid .car-card').forEach(card => {
-                card.classList.toggle('selected', parseInt(card.dataset.id) === id);
-            });
+            state.car = cars.find(c => c.id === id);
             document.getElementById('continueToPaymentBtn').disabled = false;
+            render();
         }
 
-        function showStep(stepId) {
-            document.querySelectorAll('.step').forEach(step => {
-                step.classList.remove('active');
+        function showStep(s, progressIdx) {
+            document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
+            document.getElementById(s).classList.add('active');
+            
+            // Update progress bar
+            document.querySelectorAll('.progress-segment').forEach((el, i) => {
+                el.classList.toggle('active', i < progressIdx);
             });
-            document.getElementById(stepId).classList.add('active');
         }
 
-        function findDriver() {
-            showStep('step-loading');
-            
-            const delay = Math.floor(Math.random() * 2000) + 4000; // 4-6 seconds
-            
+        document.getElementById('continueToCarBtn').onclick = () => showStep('step-car', 2);
+        document.getElementById('backToLocationBtn').onclick = () => showStep('step-location', 1);
+        document.getElementById('continueToPaymentBtn').onclick = () => showStep('step-payment', 3);
+        document.getElementById('backToCarBtn').onclick = () => showStep('step-car', 2);
+        
+        document.getElementById('confirmRideBtn').onclick = () => {
+            showStep('step-loading', 3);
             setTimeout(() => {
-                const driver = drivers[Math.floor(Math.random() * drivers.length)];
-                const minutesAway = Math.floor(Math.random() * 10) + 2; // 2-12 minutes
-                const distance = (Math.random() * 3 + 0.5).toFixed(1); // 0.5-3.5 miles
-                
-                showConfirmation(driver, minutesAway, distance);
-            }, delay);
-        }
+                const d = drivers[Math.floor(Math.random()*drivers.length)];
+                document.getElementById('driverCard').innerHTML = `
+                    <div class="flex items-center gap-4">
+                        <img src="${d.photo}" class="w-14 h-14 rounded-full object-cover border-2 border-white">
+                        <div class="text-left">
+                            <div class="font-bold">${d.name}</div>
+                            <div class="text-xs text-gray-400">⭐ ${d.rating} • ${d.tier}</div>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('rideDetails').innerHTML = `
+                    <div class="flex justify-between text-sm"><span class="opacity-50">To</span><span class="font-bold">${state.loc.name}</span></div>
+                    <div class="flex justify-between text-sm"><span class="opacity-50">Vehicle</span><span class="font-bold">${state.car.name}</span></div>
+                    <div class="flex justify-between text-sm"><span class="opacity-50">ETA</span><span class="font-bold">4 mins</span></div>
+                `;
+                showStep('step-confirmation', 3);
+            }, 3000);
+        };
 
-        function showConfirmation(driver, minutesAway, distance) {
-            const driverCard = document.getElementById('driverCard');
-            const tierBadge = driver.tier ? `<span style="background: #fbbf24; color: #000; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; margin-left: 8px;">${driver.tier}</span>` : '';
-            
-            driverCard.innerHTML = `
-                <img src="${driver.photo}" alt="${driver.name}" class="driver-photo">
-                <div class="driver-info">
-                    <div class="driver-name">${driver.name}${tierBadge}</div>
-                    <div class="driver-details">⭐ ${driver.rating} · ${selectedCar.name}</div>
-                </div>
-            `;
-
-            const rideDetails = document.getElementById('rideDetails');
-            rideDetails.innerHTML = `
-                <div class="ride-detail-row">
-                    <span class="ride-detail-label">Destination</span>
-                    <span class="ride-detail-value">${selectedLocation.name}</span>
-                </div>
-                <div class="ride-detail-row">
-                    <span class="ride-detail-label">Arrival Time</span>
-                    <span class="ride-detail-value">${minutesAway} minutes</span>
-                </div>
-                <div class="ride-detail-row">
-                    <span class="ride-detail-label">Distance</span>
-                    <span class="ride-detail-value">${distance} miles away</span>
-                </div>
-                <div class="ride-detail-row">
-                    <span class="ride-detail-label">Payment</span>
-                    <span class="ride-detail-value">Company Card ••4013</span>
-                </div>
-            `;
-
-            showStep('step-confirmation');
-        }
-
-        function resetBooking() {
-            selectedLocation = null;
-            selectedCar = null;
-            document.querySelectorAll('.location-card, .car-card').forEach(card => {
-                card.classList.remove('selected');
-            });
+        document.getElementById('newRideBtn').onclick = () => {
+            state = { loc: null, car: null };
             document.getElementById('continueToCarBtn').disabled = true;
             document.getElementById('continueToPaymentBtn').disabled = true;
-            showStep('step-location');
-        }
+            showStep('step-location', 1);
+            render();
+        };
 
-        function setupEventListeners() {
-            document.getElementById('continueToCarBtn').addEventListener('click', () => {
-                showStep('step-car');
-            });
-
-            document.getElementById('continueToPaymentBtn').addEventListener('click', () => {
-                showStep('step-payment');
-            });
-
-            document.getElementById('confirmRideBtn').addEventListener('click', () => {
-                findDriver();
-            });
-
-            document.getElementById('backToLocationBtn').addEventListener('click', () => {
-                showStep('step-location');
-            });
-
-            document.getElementById('backToCarBtn').addEventListener('click', () => {
-                showStep('step-car');
-            });
-
-            document.getElementById('newRideBtn').addEventListener('click', () => {
-                resetBooking();
-            });
-        }
-
-        // Service Worker Registration
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').catch(() => {
-                    // Silent fail for GitHub Pages
-                });
-            });
-        }
-
-        init();
+        render();
     </script>
 </body>
 </html>
